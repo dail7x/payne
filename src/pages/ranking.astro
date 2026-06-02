@@ -58,7 +58,7 @@ const seoDesc = "Descubre cuáles son los hechos más votados y legendarios sobr
   </div>
 </Layout>
 
-<style>
+<style is:global>
   .ranking-page-container {
     width: 100%;
     max-width: 600px;
@@ -223,18 +223,17 @@ const seoDesc = "Descubre cuáles son los hechos más votados y legendarios sobr
     letter-spacing: 0.1em;
   }
 
-  /* Ranking item element: Brutalist black box */
   .ranking-item {
     background: #0a0a0a;
-    border: 1px solid #141414;
-    border-radius: 6px;
+    border: 1px solid #1a1a1a;
+    border-radius: 8px;
     display: flex;
     align-items: center;
-    padding: 12px 14px;
-    gap: 12px;
+    padding: 14px 16px;
+    gap: 16px;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
-    min-height: 72px;
+    min-height: 76px;
   }
 
   .ranking-item:hover {
@@ -320,22 +319,23 @@ const seoDesc = "Descubre cuáles son los hechos más votados y legendarios sobr
     letter-spacing: 0.05em;
   }
 
-  .fact-preview-text {
+  .fact-preview-text, .fact-preview-text:link, .fact-preview-text:visited {
     font-family: var(--font-geom);
-    font-size: clamp(10px, 3vw, 11px);
-    line-height: 1.4;
-    font-weight: 700;
+    font-size: clamp(10px, 3vw, 11.5px);
+    line-height: 1.45;
+    font-weight: 800;
     color: #dddddd;
     text-transform: uppercase;
-    text-decoration: none;
+    text-decoration: none !important;
     word-wrap: break-word;
     display: block;
     cursor: pointer;
     transition: color 0.2s;
   }
 
-  .fact-preview-text:hover {
+  .fact-preview-text:hover, .fact-preview-text:active {
     color: #ffffff;
+    text-decoration: none !important;
   }
 
   /* Small elegant upvote trigger in the list */
