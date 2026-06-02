@@ -96,7 +96,7 @@ if (lang === 'es') {
 
         <!-- Navigation Links inside Overlay -->
         <nav class="overlay-nav">
-          <a href={lang === 'es' ? '/' : '/en/'} class="overlay-item active">
+          <a href={lang === 'es' ? '/' : '/en/'} class={`overlay-item ${(!currentPath.includes('/ranking')) ? 'active' : ''}`}>
             <!-- Bolt SVG -->
             <svg class="menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
@@ -104,15 +104,14 @@ if (lang === 'es') {
             <span class="menu-label">Facts Generator</span>
           </a>
           
-          <div class="overlay-item locked" title={lang === 'es' ? 'Próximamente' : 'Coming Soon'}>
-            <!-- Gauge SVG -->
+          <a href={lang === 'es' ? '/ranking' : '/en/ranking'} class={`overlay-item ${(currentPath.includes('/ranking')) ? 'active' : ''}`}>
+            <!-- Medal / Trophy SVG -->
             <svg class="menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
+              <circle cx="12" cy="8" r="7"></circle>
+              <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
             </svg>
-            <span class="menu-label">Payne-O-Meter</span>
-            <span class="menu-badge">SOON</span>
-          </div>
+            <span class="menu-label">{lang === 'es' ? 'Ranking de Votos' : 'Upvote Ranking'}</span>
+          </a>
 
           <div class="overlay-item locked" title={lang === 'es' ? 'Próximamente' : 'Coming Soon'}>
             <!-- Runner SVG -->

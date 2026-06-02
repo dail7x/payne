@@ -1,0 +1,585 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+// Fetch all facts for initial static compilation
+const facts = await getCollection('facts');
+const sortedFacts = facts.sort((a, b) => a.data.id - b.data.id);
+
+const serializedFacts = sortedFacts.map(f => ({
+  id: f.data.id,
+  category: f.data.category,
+  categoryEs: f.data.categoryEs,
+  categoryEn: f.data.categoryEn,
+  es: f.data.es,
+  en: f.data.en,
+  tags: f.data.tags || []
+}));
+
+const seoTitle = "Ranking de Facts de Tim Payne | Más Votados";
+const seoDesc = "Descubre cuáles son los hechos más votados y legendarios sobre Tim Payne. Vota por tus favoritos en tiempo real y ayúdalos a subir en el ranking oficial.";
+---
+
+<Layout title={seoTitle} description={seoDesc} lang="es">
+  <div class="ranking-page-container" data-facts={JSON.stringify(serializedFacts)} data-lang="es">
+    <!-- Header Area -->
+    <div class="ranking-header">
+      <h1 class="ranking-title">RANKING OFICIAL</h1>
+      <p class="ranking-sub">LOS HECHOS MÁS EPICOS SOBRE TIM PAYNE VOTADOS POR LA COMUNIDAD</p>
+    </div>
+
+    <!-- Search and Filter Bar -->
+    <div class="filter-bar">
+      <div class="search-box">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="search-input" placeholder="BUSCAR POR PALABRA O TAG..." />
+      </div>
+
+      <!-- Categories filters pills -->
+      <div class="category-pills">
+        <button class="pill active" data-category="all">TODOS</button>
+        <button class="pill" data-category="legend">LEYENDA</button>
+        <button class="pill" data-category="futbol">FÚTBOL</button>
+        <button class="pill" data-category="mindset">MENTALIDAD</button>
+        <button class="pill" data-category="epic">ÉPICO</button>
+      </div>
+    </div>
+
+    <!-- Ranking List Container -->
+    <div class="ranking-list" id="ranking-list-container">
+      <!-- Will be hydrated client-side -->
+      <div class="loading-state">
+        <span class="loader-text">CARGANDO EL RANKING...</span>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .ranking-page-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .ranking-header {
+    text-align: center;
+    margin-bottom: 16px;
+    flex-shrink: 0;
+  }
+
+  .ranking-title {
+    font-family: var(--font-geom);
+    font-size: clamp(20px, 5vw, 28px);
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    color: #ffffff;
+    line-height: 1.1;
+  }
+
+  .ranking-sub {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    font-weight: 600;
+    color: #888888;
+    letter-spacing: 0.1em;
+    margin-top: 4px;
+    text-transform: uppercase;
+  }
+
+  /* Search & Filter Bar Styling */
+  .filter-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    margin-bottom: 16px;
+    flex-shrink: 0;
+  }
+
+  .search-box {
+    position: relative;
+    width: 100%;
+    background: #0a0a0a;
+    border: 1px solid #1c1c1c;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    height: 40px;
+    transition: border-color 0.2s;
+  }
+
+  .search-box:focus-within {
+    border-color: #ffffff;
+  }
+
+  .search-icon {
+    color: #555555;
+    margin-right: 8px;
+    flex-shrink: 0;
+  }
+
+  .search-box input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #ffffff;
+    font-family: var(--font-geom);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  .search-box input::placeholder {
+    color: #444444;
+  }
+
+  .category-pills {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .category-pills::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pill {
+    background: #0a0a0a;
+    border: 1px solid #1c1c1c;
+    color: #666666;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-family: var(--font-geom);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .pill:hover {
+    color: #ffffff;
+    border-color: #555555;
+  }
+
+  .pill.active {
+    background: #ffffff;
+    color: #000000;
+    border-color: #ffffff;
+  }
+
+  /* Ranking list panel */
+  .ranking-list {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+    padding-bottom: 24px;
+  }
+
+  /* Custom scrollbar for minimalist theme */
+  .ranking-list::-webkit-scrollbar {
+    width: 3px;
+  }
+  .ranking-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .ranking-list::-webkit-scrollbar-thumb {
+    background: #1c1c1c;
+    border-radius: 2px;
+  }
+  .ranking-list::-webkit-scrollbar-thumb:hover {
+    background: #444444;
+  }
+
+  .loading-state {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 0;
+  }
+
+  .loader-text {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: #444444;
+    letter-spacing: 0.1em;
+  }
+
+  /* Ranking item element: Brutalist black box */
+  .ranking-item {
+    background: #0a0a0a;
+    border: 1px solid #141414;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding: 12px 14px;
+    gap: 12px;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    min-height: 72px;
+  }
+
+  .ranking-item:hover {
+    border-color: #222222;
+  }
+
+  /* Rank Badge Styling */
+  .rank-badge {
+    width: 28px;
+    height: 28px;
+    border-radius: 5px;
+    background: #111111;
+    border: 1px solid #1c1c1c;
+    color: #555555;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* Special Top 3 Styles (Premium Accents) */
+  .ranking-item.top-1 {
+    border-color: rgba(212, 175, 55, 0.2);
+    box-shadow: 0 4px 20px rgba(212, 175, 55, 0.05);
+  }
+  .ranking-item.top-1 .rank-badge {
+    background: #d4af37;
+    border-color: #d4af37;
+    color: #000000;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  .ranking-item.top-2 {
+    border-color: rgba(192, 192, 192, 0.18);
+  }
+  .ranking-item.top-2 .rank-badge {
+    background: #c0c0c0;
+    border-color: #c0c0c0;
+    color: #000000;
+  }
+
+  .ranking-item.top-3 {
+    border-color: rgba(205, 127, 50, 0.15);
+  }
+  .ranking-item.top-3 .rank-badge {
+    background: #cd7f32;
+    border-color: #cd7f32;
+    color: #000000;
+  }
+
+  /* Info column */
+  .fact-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .fact-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .meta-category {
+    font-family: var(--font-mono);
+    font-size: 7px;
+    font-weight: 700;
+    color: #666666;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .meta-id {
+    font-family: var(--font-mono);
+    font-size: 7px;
+    font-weight: 400;
+    color: #333333;
+    letter-spacing: 0.05em;
+  }
+
+  .fact-preview-text {
+    font-family: var(--font-geom);
+    font-size: clamp(10px, 3vw, 11px);
+    line-height: 1.4;
+    font-weight: 700;
+    color: #dddddd;
+    text-transform: uppercase;
+    text-decoration: none;
+    word-wrap: break-word;
+    display: block;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .fact-preview-text:hover {
+    color: #ffffff;
+  }
+
+  /* Small elegant upvote trigger in the list */
+  .list-vote-btn {
+    background: #111111;
+    border: 1px solid #1c1c1c;
+    color: #888888;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    min-width: 58px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    flex-shrink: 0;
+  }
+
+  .list-vote-btn:hover {
+    color: #ffffff;
+    border-color: #555555;
+  }
+
+  .list-vote-btn.voted {
+    background: #ffffff;
+    border-color: #ffffff;
+    color: #000000;
+  }
+
+  .vote-arrow {
+    margin-bottom: 2px;
+    transition: transform 0.25s;
+  }
+
+  .voted .vote-arrow {
+    transform: rotate(180deg);
+  }
+
+  .list-vote-count {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    font-weight: 700;
+  }
+</style>
+
+<script>
+  class RankingEngine {
+    constructor() {
+      this.container = document.querySelector('.ranking-page-container');
+      if (!this.container) return;
+
+      // Extract static initial facts
+      this.facts = JSON.parse(this.container.dataset.facts || '[]');
+      this.lang = this.container.dataset.lang || 'es';
+      this.upvotedFacts = new Set();
+      this.factVotes = {};
+
+      // DOM bindings
+      this.listContainer = document.getElementById('ranking-list-container');
+      this.searchInput = document.getElementById('search-input');
+      this.pills = document.querySelectorAll('.pill');
+
+      // State
+      this.activeCategory = 'all';
+      this.searchQuery = '';
+
+      // Init
+      this.initLocalData();
+      this.setupEvents();
+      this.renderList();
+    }
+
+    initLocalData() {
+      // Load votes from storage
+      try {
+        const upvotedStr = localStorage.getItem('tp-upvoted-facts');
+        if (upvotedStr) {
+          this.upvotedFacts = new Set(JSON.parse(upvotedStr));
+        }
+
+        const votesStr = localStorage.getItem('tp-fact-votes');
+        if (votesStr) {
+          this.factVotes = JSON.parse(votesStr);
+        }
+      } catch (e) {}
+
+      // Initialize base votes if not set
+      this.facts.forEach(fact => {
+        if (!this.factVotes[fact.id]) {
+          this.factVotes[fact.id] = 12000 + (fact.id * 143) + Math.floor(Math.sin(fact.id) * 350);
+        }
+      });
+    }
+
+    saveLocalData() {
+      try {
+        localStorage.setItem('tp-upvoted-facts', JSON.stringify([...this.upvotedFacts]));
+        localStorage.setItem('tp-fact-votes', JSON.stringify(this.factVotes));
+      } catch (e) {}
+    }
+
+    setupEvents() {
+      // Search
+      this.searchInput.addEventListener('input', (e) => {
+        this.searchQuery = e.target.value.toLowerCase();
+        this.renderList();
+      });
+
+      // Filter pills
+      this.pills.forEach(pill => {
+        pill.addEventListener('click', () => {
+          this.pills.forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          this.activeCategory = pill.dataset.category || 'all';
+          this.renderList();
+        });
+      });
+    }
+
+    renderList() {
+      // 1. Sort facts by vote count descending
+      const sorted = [...this.facts].sort((a, b) => {
+        const votesA = this.factVotes[a.id] || 0;
+        const votesB = this.factVotes[b.id] || 0;
+        if (votesB !== votesA) {
+          return votesB - votesA;
+        }
+        return a.id - b.id; // stable fallback
+      });
+
+      // 2. Filter facts based on search query and category
+      const filtered = sorted.filter(fact => {
+        // Category match
+        if (this.activeCategory !== 'all' && fact.category !== this.activeCategory) {
+          return false;
+        }
+
+        // Search match
+        if (this.searchQuery) {
+          const text = this.lang === 'es' ? fact.es.toLowerCase() : fact.en.toLowerCase();
+          const category = (this.lang === 'es' ? fact.categoryEs : fact.categoryEn).toLowerCase();
+          const matchesText = text.includes(this.searchQuery);
+          const matchesCategory = category.includes(this.searchQuery);
+          const matchesTags = fact.tags.some(tag => tag.toLowerCase().includes(this.searchQuery));
+          const matchesId = `#${String(fact.id).padStart(3, '0')}`.includes(this.searchQuery) || String(fact.id) === this.searchQuery;
+
+          return matchesText || matchesCategory || matchesTags || matchesId;
+        }
+
+        return true;
+      });
+
+      // 3. Render
+      if (filtered.length === 0) {
+        this.listContainer.innerHTML = `
+          <div class="loading-state">
+            <span class="loader-text">${this.lang === 'es' ? 'NO SE ENCONTRARON FACTS.' : 'NO FACTS FOUND.'}</span>
+          </div>
+        `;
+        return;
+      }
+
+      this.listContainer.innerHTML = '';
+      
+      // Calculate rank mapping relative to original sorted list (so ranks remain consistent when searching)
+      const rankMap = new Map();
+      sorted.forEach((fact, index) => {
+        rankMap.set(fact.id, index + 1);
+      });
+
+      filtered.forEach(fact => {
+        const rank = rankMap.get(fact.id);
+        const votes = this.factVotes[fact.id] || 0;
+        const hasVoted = this.upvotedFacts.has(fact.id);
+        const categoryLabel = this.lang === 'es' ? fact.categoryEs : fact.categoryEn;
+        const text = this.lang === 'es' ? fact.es : fact.en;
+        const idStr = String(fact.id).padStart(3, '0');
+
+        // Dynamic classes based on rank
+        let rankClass = '';
+        if (rank === 1) rankClass = 'top-1';
+        else if (rank === 2) rankClass = 'top-2';
+        else if (rank === 3) rankClass = 'top-3';
+
+        const item = document.createElement('div');
+        item.className = `ranking-item ${rankClass}`;
+        item.dataset.factId = String(fact.id);
+
+        item.innerHTML = `
+          <div class="rank-badge">${rank}</div>
+          
+          <div class="fact-info">
+            <div class="fact-meta">
+              <span class="meta-category">${categoryLabel}</span>
+              <span class="meta-id">#${idStr}</span>
+            </div>
+            <a href="${this.lang === 'es' ? '' : '/en'}/facts/${fact.id}" class="fact-preview-text">
+              "${text}"
+            </a>
+          </div>
+
+          <button class="list-vote-btn tp-pressable ${hasVoted ? 'voted' : ''}">
+            <svg class="vote-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="18 15 12 9 6 15"></polyline>
+            </svg>
+            <span class="list-vote-count">${votes.toLocaleString()}</span>
+          </button>
+        `;
+
+        // Wire up individual upvote trigger
+        const voteBtn = item.querySelector('.list-vote-btn');
+        voteBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          this.toggleUpvote(fact.id, voteBtn);
+        });
+
+        this.listContainer.appendChild(item);
+      });
+    }
+
+    toggleUpvote(factId, btnElement) {
+      const hasUpvoted = this.upvotedFacts.has(factId);
+
+      if (hasUpvoted) {
+        this.upvotedFacts.delete(factId);
+        this.factVotes[factId]--;
+      } else {
+        this.upvotedFacts.add(factId);
+        this.factVotes[factId]++;
+
+        // Bounce animation
+        btnElement.style.animation = 'none';
+        btnElement.offsetHeight;
+        btnElement.style.animation = 'streakBounce 0.4s ease';
+      }
+
+      this.saveLocalData();
+      
+      // Re-render and sort instantly
+      this.renderList();
+    }
+  }
+
+  // Instant execution to support fast transitions
+  new RankingEngine();
+</script>
