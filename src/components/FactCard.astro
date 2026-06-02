@@ -1,0 +1,752 @@
+---
+import { getCollection } from 'astro:content';
+
+interface Props {
+  lang: 'es' | 'en';
+  startIndex?: number;
+}
+
+const { lang, startIndex = 0 } = Astro.props;
+
+// Fetch all 100 facts from the markdown DB
+const facts = await getCollection('facts');
+const sortedFacts = facts.sort((a, b) => a.data.id - b.data.id);
+
+const serializedFacts = sortedFacts.map(f => ({
+  id: f.data.id,
+  category: f.data.category,
+  categoryEs: f.data.categoryEs,
+  categoryEn: f.data.categoryEn,
+  es: f.data.es,
+  en: f.data.en,
+}));
+---
+
+<div 
+  class="facts-wrapper" 
+  data-facts={JSON.stringify(serializedFacts)} 
+  data-lang={lang}
+  data-start-index={startIndex}
+>
+  <!-- Main deck container taking up remaining flex space -->
+  <div class="deck-container">
+    
+    <!-- Left Navigation Arrow (Desktop Only) -->
+    <button class="nav-arrow nav-left" id="btn-prev" aria-label="Previous fact">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+
+    <!-- Swipeable Card -->
+    <div class="tinder-card" id="main-card">
+      <!-- Card header row -->
+      <div class="card-header">
+        <div class="badge-category">
+          <span id="card-badge">LEYENDA</span>
+        </div>
+        <span class="fact-number" id="card-number">#001</span>
+      </div>
+
+      <!-- Main Fact Text -->
+      <div class="card-content">
+        <p class="fact-text" id="card-text">
+          "Cargando..."
+        </p>
+      </div>
+
+      <!-- Watermark footer inside the card for screenshotting -->
+      <div class="card-watermark">
+        <span>TIMPAYNEFACTS.COM</span>
+        <span>@TIMPAYNEFACTS</span>
+      </div>
+
+      <!-- Swipe Hints overlay -->
+      <div class="swipe-hint hint-left">SIGUIENTE</div>
+      <div class="swipe-hint hint-right">UPVOTE!</div>
+    </div>
+
+    <!-- Right Navigation Arrow (Desktop Only) -->
+    <button class="nav-arrow nav-right" id="btn-next" aria-label="Next fact">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Bottom Panel Actions -->
+  <div class="bottom-actions">
+    <!-- Upvotes dynamic counter -->
+    <button class="action-btn upvote-btn tp-pressable" id="btn-upvote">
+      <svg class="btn-svg-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="18 15 12 9 6 15"></polyline>
+      </svg>
+      <span class="vote-label" id="lbl-upvote">UPVOTAR</span>
+      <span class="vote-count" id="lbl-votes">18,432</span>
+    </button>
+
+    <!-- Download Story format -->
+    <button class="action-btn download-btn tp-pressable" id="btn-download">
+      <svg class="btn-svg-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 10 12 15 17 10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+      </svg>
+      <span id="lbl-download">HISTORIA</span>
+    </button>
+  </div>
+
+  <!-- Total counter -->
+  <div class="total-counter">
+    <span id="lbl-global-count">18,432 facts generados</span>
+  </div>
+</div>
+
+<style>
+  .facts-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 0;
+  }
+
+  .deck-container {
+    position: relative;
+    width: 100%;
+    max-width: 380px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    perspective: 1000px;
+    min-height: 0;
+    margin: 12px 0;
+  }
+
+  /* Minimalist navigation arrows (Desktop only) */
+  .nav-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #0a0a0a;
+    border: 1px solid #1a1a1a;
+    color: #555555;
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 10;
+  }
+
+  .nav-arrow:hover {
+    color: #ffffff;
+    border-color: #ffffff;
+    background: #111111;
+  }
+
+  .nav-arrow:active {
+    transform: translateY(-50%) scale(0.95);
+  }
+
+  .nav-left {
+    left: -52px;
+  }
+
+  .nav-right {
+    right: -52px;
+  }
+
+  @media (max-width: 520px) {
+    .nav-arrow {
+      display: none;
+    }
+  }
+
+  /* Brutalist/Minimalist Tinder Card (White on Black) */
+  .tinder-card {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    max-height: 340px; /* Prevent stretching on long viewports */
+    background: #0a0a0a;
+    border: 1px solid #1a1a1a;
+    border-radius: 8px;
+    padding: 24px 20px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.9);
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    animation: cardEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .tinder-card:active {
+    cursor: grabbing;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .badge-category {
+    background: #111111;
+    border: 1px solid #1c1c1c;
+    border-radius: 4px;
+    padding: 4px 8px;
+  }
+
+  .badge-category span {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: #888888;
+    text-transform: uppercase;
+  }
+
+  .fact-number {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: #444444;
+    letter-spacing: 0.05em;
+  }
+
+  .card-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 0;
+    min-height: 0;
+  }
+
+  /* Montserrat uppercase clean typography */
+  .fact-text {
+    font-family: var(--font-geom);
+    font-size: clamp(15px, 4vw, 19px);
+    line-height: 1.45;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: #ffffff;
+    text-align: center;
+    margin: 0;
+    word-wrap: break-word;
+  }
+
+  .card-watermark {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid #141414;
+    padding-top: 12px;
+    opacity: 0.15;
+  }
+
+  .card-watermark span {
+    font-family: var(--font-mono);
+    font-size: 7px;
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    color: #ffffff;
+  }
+
+  .swipe-hint {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--font-geom);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    padding: 6px 12px;
+    border-radius: 4px;
+    opacity: 0;
+    z-index: 5;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+  }
+
+  .hint-left {
+    right: 16px;
+    border: 1px solid #ffffff;
+    color: #ffffff;
+    background: #000000;
+  }
+
+  .hint-right {
+    left: 16px;
+    border: 1px solid #ffffff;
+    color: #ffffff;
+    background: #000000;
+  }
+
+  /* Action Buttons (Brutalist flat black & white) */
+  .bottom-actions {
+    display: flex;
+    width: 100%;
+    max-width: 320px;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .action-btn {
+    height: 46px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    outline: none;
+    font-family: var(--font-geom);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .upvote-btn {
+    flex: 1;
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    color: #000000;
+    gap: 6px;
+  }
+
+  .upvote-btn:active {
+    background: #dddddd;
+    border-color: #dddddd;
+  }
+
+  .upvote-btn.upvoted {
+    background: #0d0d0d;
+    color: #ffffff;
+    border: 1px solid #1a1a1a;
+  }
+
+  .btn-svg-icon {
+    flex-shrink: 0;
+  }
+
+  .vote-count {
+    font-family: var(--font-mono);
+    opacity: 0.8;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 9px;
+  }
+
+  .upvoted .vote-count {
+    background: #1c1c1c;
+    color: #888888;
+  }
+
+  .download-btn {
+    background: #000000;
+    border: 1px solid #1c1c1c;
+    color: #888888;
+    width: 110px;
+    gap: 6px;
+  }
+
+  .download-btn:hover, .download-btn:active {
+    color: #ffffff;
+    border-color: #ffffff;
+  }
+
+  .total-counter {
+    margin-top: 10px;
+    font-family: var(--font-mono);
+    font-size: 8px;
+    letter-spacing: 0.05em;
+    color: #333333;
+    flex-shrink: 0;
+  }
+</style>
+
+<!-- Import html2canvas on client load -->
+<script>
+  import html2canvas from 'html2canvas';
+
+  class FactsEngine {
+    constructor() {
+      this.wrapper = document.querySelector('.facts-wrapper');
+      if (!this.wrapper) return;
+
+      // Extract details
+      this.facts = JSON.parse(this.wrapper.dataset.facts || '[]');
+      this.lang = this.wrapper.dataset.lang || 'es';
+      this.currentIndex = parseInt(this.wrapper.dataset.startIndex || '0');
+      this.upvotedFacts = new Set();
+      this.factVotes = {};
+
+      // DOM bindings
+      this.card = document.getElementById('main-card');
+      this.badge = document.getElementById('card-badge');
+      this.number = document.getElementById('card-number');
+      this.text = document.getElementById('card-text');
+      
+      this.btnPrev = document.getElementById('btn-prev');
+      this.btnNext = document.getElementById('btn-next');
+      this.btnUpvote = document.getElementById('btn-upvote');
+      this.lblUpvote = document.getElementById('lbl-upvote');
+      this.lblVotes = document.getElementById('lbl-votes');
+      this.btnDownload = document.getElementById('btn-download');
+      
+      this.hintLeft = document.querySelector('.hint-left');
+      this.hintRight = document.querySelector('.hint-right');
+      this.globalCountLabel = document.getElementById('lbl-global-count');
+
+      // Constants
+      this.SWIPE_THRESHOLD = 90;
+      this.BASE_GLOBAL_COUNT = 18432;
+
+      // State tracking
+      this.dragStart = { x: 0, y: 0 };
+      this.dragDelta = { x: 0, y: 0 };
+      this.isDragging = false;
+      this.currentPtrId = null;
+
+      // Init
+      this.initLocalData();
+      this.renderFact();
+      this.setupEvents();
+    }
+
+    initLocalData() {
+      // Load votes from storage
+      try {
+        const upvotedStr = localStorage.getItem('tp-upvoted-facts');
+        if (upvotedStr) {
+          this.upvotedFacts = new Set(JSON.parse(upvotedStr));
+        }
+
+        const votesStr = localStorage.getItem('tp-fact-votes');
+        if (votesStr) {
+          this.factVotes = JSON.parse(votesStr);
+        }
+      } catch (e) {}
+
+      // Initialize base votes if not set
+      this.facts.forEach(fact => {
+        if (!this.factVotes[fact.id]) {
+          this.factVotes[fact.id] = 12000 + (fact.id * 143) + Math.floor(Math.sin(fact.id) * 350);
+        }
+      });
+    }
+
+    saveLocalData() {
+      try {
+        localStorage.setItem('tp-upvoted-facts', JSON.stringify([...this.upvotedFacts]));
+        localStorage.setItem('tp-fact-votes', JSON.stringify(this.factVotes));
+      } catch (e) {}
+    }
+
+    renderFact() {
+      if (this.facts.length === 0) return;
+      const fact = this.facts[this.currentIndex];
+
+      const category = this.lang === 'es' ? fact.categoryEs : fact.categoryEn;
+      const factText = this.lang === 'es' ? fact.es : fact.en;
+
+      // Update contents
+      this.badge.textContent = category;
+      this.number.textContent = `#${String(fact.id).padStart(3, '0')}`;
+      this.text.textContent = `"${factText}"`;
+
+      // Upvote status
+      const hasUpvoted = this.upvotedFacts.has(fact.id);
+      const voteCount = this.factVotes[fact.id];
+
+      if (hasUpvoted) {
+        this.btnUpvote.classList.add('upvoted');
+        this.lblUpvote.textContent = this.lang === 'es' ? 'VOTADO' : 'VOTED';
+        this.btnUpvote.querySelector('svg').style.transform = 'rotate(180deg)';
+      } else {
+        this.btnUpvote.classList.remove('upvoted');
+        this.lblUpvote.textContent = this.lang === 'es' ? 'UPVOTAR' : 'UPVOTE';
+        this.btnUpvote.querySelector('svg').style.transform = '';
+      }
+      this.lblVotes.textContent = voteCount.toLocaleString();
+
+      // Update global count
+      const totalLocalAdded = Object.keys(this.factVotes).reduce((sum, key) => {
+        const factId = parseInt(key);
+        return sum + (this.upvotedFacts.has(factId) ? 1 : 0);
+      }, 0);
+
+      const totalGlobal = this.BASE_GLOBAL_COUNT + totalLocalAdded;
+      this.globalCountLabel.textContent = this.lang === 'es' 
+        ? `${totalGlobal.toLocaleString()} facts generados` 
+        : `${totalGlobal.toLocaleString()} facts generated`;
+
+      // Play elegant text reveal
+      this.text.style.animation = 'none';
+      this.text.offsetHeight;
+      this.text.style.animation = 'factReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) both';
+
+      // Deep link sitemap
+      try {
+        const langPath = this.lang === 'en' ? '/en' : '';
+        const newUrl = `${window.location.origin}${langPath}/facts/${fact.id}`;
+        window.history.replaceState({ factId: fact.id }, '', newUrl);
+      } catch (e) {}
+    }
+
+    setupEvents() {
+      // Click navigations
+      this.btnPrev.addEventListener('click', () => this.navigate(-1));
+      this.btnNext.addEventListener('click', () => this.navigate(1));
+      this.btnUpvote.addEventListener('click', () => this.triggerUpvote());
+      this.btnDownload.addEventListener('click', () => this.triggerDownload());
+
+      // Keyboard navigation
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') this.navigate(-1);
+        if (e.key === 'ArrowRight') this.navigate(1);
+      });
+
+      // Tinder Gestures
+      this.card.addEventListener('pointerdown', (e) => this.onPointerDown(e));
+      window.addEventListener('pointermove', (e) => this.onPointerMove(e));
+      window.addEventListener('pointerup', (e) => this.onPointerUp(e));
+      window.addEventListener('pointercancel', (e) => this.onPointerUp(e));
+    }
+
+    navigate(direction) {
+      this.currentIndex = (this.currentIndex + direction + this.facts.length) % this.facts.length;
+      
+      this.card.style.transition = 'transform 0.15s, opacity 0.15s';
+      this.card.style.transform = `translateX(${direction * -30}px) scale(0.97)`;
+      this.card.style.opacity = '0';
+
+      setTimeout(() => {
+        this.renderFact();
+        this.card.style.transform = `translateX(${direction * 30}px) scale(0.97)`;
+        this.card.style.opacity = '0';
+        
+        setTimeout(() => {
+          this.card.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s';
+          this.card.style.transform = '';
+          this.card.style.opacity = '1';
+        }, 20);
+      }, 150);
+    }
+
+    triggerUpvote() {
+      const fact = this.facts[this.currentIndex];
+      const hasUpvoted = this.upvotedFacts.has(fact.id);
+
+      if (hasUpvoted) {
+        this.upvotedFacts.delete(fact.id);
+        this.factVotes[fact.id]--;
+      } else {
+        this.upvotedFacts.add(fact.id);
+        this.factVotes[fact.id]++;
+        
+        this.btnUpvote.style.animation = 'none';
+        this.btnUpvote.offsetHeight;
+        this.btnUpvote.style.animation = 'streakBounce 0.4s ease';
+      }
+
+      this.saveLocalData();
+      this.renderFact();
+    }
+
+    onPointerDown(e) {
+      if (e.button !== 0) return;
+      this.isDragging = true;
+      this.currentPtrId = e.pointerId;
+      this.dragStart.x = e.clientX;
+      this.dragStart.y = e.clientY;
+      
+      this.card.setPointerCapture(e.pointerId);
+      this.card.style.transition = 'none';
+    }
+
+    onPointerMove(e) {
+      if (!this.isDragging || e.pointerId !== this.currentPtrId) return;
+
+      this.dragDelta.x = e.clientX - this.dragStart.x;
+      this.dragDelta.y = e.clientY - this.dragStart.y;
+
+      const limitedDeltaY = this.dragDelta.y * 0.35;
+      const rotation = this.dragDelta.x / 20;
+
+      this.card.style.transform = `translate3d(${this.dragDelta.x}px, ${limitedDeltaY}px, 0) rotate(${rotation}deg)`;
+
+      const dragPercent = Math.min(Math.abs(this.dragDelta.x) / this.SWIPE_THRESHOLD, 1);
+      
+      if (this.dragDelta.x > 15) {
+        this.hintRight.style.opacity = String(dragPercent);
+        this.hintLeft.style.opacity = '0';
+      } else if (this.dragDelta.x < -15) {
+        this.hintLeft.style.opacity = String(dragPercent);
+        this.hintRight.style.opacity = '0';
+      } else {
+        this.hintLeft.style.opacity = '0';
+        this.hintRight.style.opacity = '0';
+      }
+    }
+
+    onPointerUp(e) {
+      if (!this.isDragging || e.pointerId !== this.currentPtrId) return;
+      this.isDragging = false;
+      this.currentPtrId = null;
+
+      this.hintLeft.style.opacity = '0';
+      this.hintRight.style.opacity = '0';
+
+      this.card.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s';
+
+      const distance = this.dragDelta.x;
+
+      if (distance > this.SWIPE_THRESHOLD) {
+        const fact = this.facts[this.currentIndex];
+        if (!this.upvotedFacts.has(fact.id)) {
+          this.triggerUpvote();
+        }
+
+        this.card.style.transform = 'translate3d(400px, 0, 0) rotate(20deg)';
+        this.card.style.opacity = '0';
+
+        setTimeout(() => {
+          this.currentIndex = (this.currentIndex + 1) % this.facts.length;
+          this.renderFact();
+          this.card.style.transition = 'none';
+          this.card.style.transform = 'translate3d(-400px, 0, 0) rotate(-20deg)';
+          this.card.offsetHeight;
+          this.card.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s';
+          this.card.style.transform = '';
+          this.card.style.opacity = '1';
+        }, 200);
+
+      } else if (distance < -this.SWIPE_THRESHOLD) {
+        this.card.style.transform = 'translate3d(-400px, 0, 0) rotate(-20deg)';
+        this.card.style.opacity = '0';
+
+        setTimeout(() => {
+          this.currentIndex = (this.currentIndex + 1) % this.facts.length;
+          this.renderFact();
+          this.card.style.transition = 'none';
+          this.card.style.transform = 'translate3d(400px, 0, 0) rotate(20deg)';
+          this.card.offsetHeight;
+          this.card.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s';
+          this.card.style.transform = '';
+          this.card.style.opacity = '1';
+        }, 200);
+
+      } else {
+        this.card.style.transform = '';
+        this.card.style.opacity = '1';
+      }
+
+      this.dragDelta = { x: 0, y: 0 };
+    }
+
+    async triggerDownload() {
+      const fact = this.facts[this.currentIndex];
+      const factText = this.lang === 'es' ? fact.es : fact.en;
+      const category = this.lang === 'es' ? fact.categoryEs : fact.categoryEn;
+
+      const prevLabel = this.btnDownload.querySelector('span').textContent;
+      this.btnDownload.querySelector('span').textContent = '...';
+      this.btnDownload.disabled = true;
+
+      // Build premium 9:16 vertical layout (White on Black)
+      const storyContainer = document.createElement('div');
+      storyContainer.style.position = 'absolute';
+      storyContainer.style.left = '-9999px';
+      storyContainer.style.top = '0';
+      storyContainer.style.width = '1080px';
+      storyContainer.style.height = '1920px';
+      storyContainer.style.background = '#000000';
+      storyContainer.style.color = '#ffffff';
+      storyContainer.style.fontFamily = "'Montserrat', sans-serif";
+      storyContainer.style.display = 'flex';
+      storyContainer.style.flexDirection = 'column';
+      storyContainer.style.justifyContent = 'space-between';
+      storyContainer.style.alignItems = 'center';
+      
+      // Safety zone padding: Massive 380px safety margin at the bottom to prevent IG/TikTok interface blocking!
+      storyContainer.style.padding = '180px 100px 380px'; 
+      storyContainer.style.boxSizing = 'border-box';
+      storyContainer.style.zIndex = '-9999';
+
+      storyContainer.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+          <div style="background: #0d0d0d; border: 2px solid #1c1c1c; border-radius: 8px; padding: 12px 24px;">
+            <span style="font-family: 'DM Mono', monospace; font-size: 20px; font-weight: 700; letter-spacing: 0.12em; color: #888888; text-transform: uppercase;">
+              ${category}
+            </span>
+          </div>
+          <span style="font-family: 'DM Mono', monospace; font-size: 24px; font-weight: 500; color: #333333; letter-spacing: 0.05em;">
+            #${String(fact.id).padStart(3, '0')}
+          </span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 60px 0;">
+          <!-- Dual crossover flags celebration NZ x AR -->
+          <div style="font-size: 110px; color: #ffffff; font-family: 'Montserrat', sans-serif; line-height: 1; margin-bottom: 30px; letter-spacing: 0.1em; display: flex; align-items: center; gap: 20px;">
+            <span>🇳🇿</span>
+            <span style="font-size: 50px; opacity: 0.3; font-weight: 800; font-family: 'DM Mono', monospace;">x</span>
+            <span>🇦🇷</span>
+          </div>
+          <p style="font-family: 'Montserrat', sans-serif; font-size: 52px; line-height: 1.45; font-weight: 900; text-transform: uppercase; letter-spacing: 0.02em; color: #ffffff; text-align: center; margin: 0; word-wrap: break-word; max-width: 880px;">
+            "${factText}"
+          </p>
+        </div>
+
+        <!-- Watermark strictly raised safely above the IG response field zone -->
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; border-top: 2px solid #141414; width: 100%; padding-top: 40px; gap: 12px;">
+          <span style="font-family: 'DM Mono', monospace; font-size: 24px; font-weight: 600; letter-spacing: 0.3em; color: #ffffff;">
+            TIMPAYNEFACTS.COM
+          </span>
+          <span style="font-family: 'DM Mono', monospace; font-size: 20px; font-weight: 400; letter-spacing: 0.2em; color: #333333;">
+            @TIMPAYNEFACTS
+          </span>
+        </div>
+      `;
+
+      document.body.appendChild(storyContainer);
+
+      try {
+        await new Promise(r => setTimeout(r, 100));
+
+        const canvas = await html2canvas(storyContainer, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#000000'
+        });
+
+        const dataUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = `timpayne-fact-${fact.id}.png`;
+        link.href = dataUrl;
+        link.click();
+      } catch (e) {
+        console.error('Screenshot failed', e);
+      } finally {
+        document.body.removeChild(storyContainer);
+        this.btnDownload.querySelector('span').textContent = prevLabel;
+        this.btnDownload.disabled = false;
+      }
+    }
+  }
+
+  // Instantiate Directly (No DOMContentLoaded wrapper to fix loading bug)
+  new FactsEngine();
+</script>

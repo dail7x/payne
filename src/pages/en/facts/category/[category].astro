@@ -1,0 +1,193 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../../../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+  const facts = await getCollection('facts');
+  
+  // Extract unique categories
+  const categories = [...new Set(facts.map(f => f.data.category))];
+  
+  return categories.map(category => {
+    const categoryFacts = facts.filter(f => f.data.category === category);
+    
+    // Get category names
+    const categoryEs = categoryFacts[0]?.data.categoryEs || category;
+    const categoryEn = categoryFacts[0]?.data.categoryEn || category;
+
+    return {
+      params: { category },
+      props: { 
+        facts: categoryFacts.sort((a, b) => a.data.id - b.data.id),
+        categoryEs,
+        categoryEn
+      }
+    };
+  });
+}
+
+const { category } = Astro.params;
+const { facts, categoryEs, categoryEn } = Astro.props;
+
+const seoTitle = `Tim Payne Facts on: ${categoryEn}`;
+const seoDesc = `Explore all viral and unbelievable facts about Tim Payne in the category ${categoryEn}. Complete list of football legends.`;
+
+const jsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": seoTitle,
+  "description": seoDesc,
+  "url": Astro.url.href,
+  "inLanguage": "en"
+});
+---
+
+<Layout title={seoTitle} description={seoDesc} lang="en" jsonLd={jsonLd}>
+  <div class="category-container">
+    <header class="category-header">
+      <div class="back-link-wrapper">
+        <a href="/en/" class="back-link">← Back to Generator</a>
+      </div>
+      <h1 class="category-title">{categoryEn.toUpperCase()}</h1>
+      <p class="category-subtitle">ALL THE FACTS IN THIS CATEGORY</p>
+    </header>
+
+    <div class="facts-list">
+      {facts.map(fact => (
+        <article class="fact-item-block">
+          <div class="item-header">
+            <span class="item-badge">#{fact.data.id}</span>
+            <a href={`/en/facts/${fact.data.id}`} class="item-permalink">permalink</a>
+          </div>
+          <p class="item-text">"{fact.data.en}"</p>
+          {fact.data.tags && (
+            <div class="item-tags">
+              {fact.data.tags.map(tag => <span class="tag">#{tag}</span>)}
+            </div>
+          )}
+        </article>
+      ))}
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .category-container {
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+    padding-bottom: 60px;
+  }
+
+  .category-header {
+    margin-bottom: 40px;
+  }
+
+  .back-link-wrapper {
+    margin-bottom: 16px;
+  }
+
+  .back-link {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    transition: color 0.2s;
+  }
+
+  .back-link:hover {
+    color: var(--gold-accent);
+  }
+
+  .category-title {
+    font-family: var(--font-geom);
+    font-size: clamp(28px, 6vw, 48px);
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    color: var(--text-main);
+    line-height: 1.1;
+    margin: 0;
+  }
+
+  .category-subtitle {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--gold-accent);
+    letter-spacing: 0.14em;
+    margin-top: 6px;
+  }
+
+  .facts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .fact-item-block {
+    background: var(--card-bg-gradient);
+    border: 1px solid var(--border-light);
+    border-radius: 14px;
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: border-color 0.3s;
+  }
+
+  .fact-item-block:hover {
+    border-color: var(--border-gold);
+  }
+
+  .item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .item-badge {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--gold-accent);
+    font-weight: 600;
+  }
+
+  .item-permalink {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-muted);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: color 0.2s;
+  }
+
+  .item-permalink:hover {
+    color: var(--text-main);
+  }
+
+  .item-text {
+    font-family: var(--font-geom);
+    font-size: 16px;
+    font-weight: 700;
+    text-transform: uppercase;
+    line-height: 1.4;
+    letter-spacing: 0.01em;
+    color: var(--text-main);
+    margin: 0;
+  }
+
+  .item-tags {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    color: var(--text-muted);
+  }
+</style>

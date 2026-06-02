@@ -1,0 +1,91 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../../layouts/Layout.astro';
+import FactCard from '../../../components/FactCard.astro';
+
+export async function getStaticPaths() {
+  const facts = await getCollection('facts');
+  const sorted = facts.sort((a, b) => a.data.id - b.data.id);
+  return sorted.map((fact, index) => ({
+    params: { id: fact.data.id.toString() },
+    props: { fact, index }
+  }));
+}
+
+const { fact, index } = Astro.props;
+
+const seoTitle = `Tim Payne Fact #${fact.data.id} | The Legend`;
+const seoDesc = `Fact #${fact.data.id}: "${fact.data.en}". Explore and share the best Tim Payne viral facts in high resolution story format.`;
+
+const jsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "CreativeWork",
+  "name": `Tim Payne Fact #${fact.data.id}`,
+  "headline": fact.data.en,
+  "description": seoDesc,
+  "author": {
+    "@type": "Organization",
+    "name": "Tim Payne Facts Community"
+  },
+  "inLanguage": "en"
+});
+---
+
+<Layout title={seoTitle} description={seoDesc} lang="en" factId={fact.data.id} jsonLd={jsonLd}>
+  <div class="facts-page-container">
+    <div class="text-center-header">
+      <h1 class="main-title">TIM PAYNE FACTS</h1>
+      <p class="main-sub">FACT #{fact.data.id} - EXPLORING THE LEGEND</p>
+    </div>
+
+    <!-- Pre-render text for SEO & LLM indexability inside standard HTML tags -->
+    <article class="seo-content-article">
+      <h2 style="display:none;">Fact #${fact.data.id}</h2>
+      <blockquote style="display:none;">
+        "{fact.data.en}"
+      </blockquote>
+    </article>
+
+    <!-- Client-side swiper card starting at current index -->
+    <FactCard lang="en" startIndex={index} />
+  </div>
+</Layout>
+
+<style>
+  .facts-page-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .text-center-header {
+    text-align: center;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+  }
+
+  .main-title {
+    font-family: var(--font-geom);
+    font-size: clamp(20px, 5vw, 30px);
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    color: #ffffff;
+    line-height: 1.1;
+  }
+
+  .main-sub {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    font-weight: 600;
+    color: #888888;
+    letter-spacing: 0.1em;
+    margin-top: 4px;
+    text-transform: uppercase;
+  }
+</style>

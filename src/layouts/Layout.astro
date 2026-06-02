@@ -1,0 +1,444 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+  lang: 'es' | 'en';
+  factId?: number;
+  jsonLd?: string;
+}
+
+const { title, description, lang, jsonLd } = Astro.props;
+
+// Build paths for language toggle
+const currentPath = Astro.url.pathname;
+let englishPath = '';
+let spanishPath = '';
+
+if (lang === 'es') {
+  spanishPath = currentPath;
+  englishPath = '/en' + (currentPath === '/' ? '' : currentPath);
+} else {
+  englishPath = currentPath;
+  spanishPath = currentPath.replace(/^\/en/, '') || '/';
+}
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    
+    <!-- SEO Optimization -->
+    <title>{title} | Tim Payne Facts</title>
+    <meta name="description" content={description} />
+    
+    <!-- Open Graph Metadata -->
+    <meta property="og:title" content={`${title} | Tim Payne Facts`} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={Astro.url.href} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- LLM Indexation Hint -->
+    <meta name="robots" content="index, follow" />
+    <link rel="alternate" type="text/plain" href="/facts.txt" title="Tim Payne Facts Raw Feed" />
+
+    {jsonLd && <script type="application/ld+json" set:html={jsonLd}></script>}
+  </head>
+  <body>
+    <div class="app-layout">
+      <!-- TOP MINIMAL BAR -->
+      <header class="top-nav-bar">
+        <div class="top-logo-area">
+          <span class="top-logo-flag">🇳🇿 x 🇦🇷</span>
+          <div class="top-logo-text">
+            <span class="top-logo-title">TIM PAYNE</span>
+            <span class="top-logo-sub">FACTS HUB</span>
+          </div>
+        </div>
+
+        <!-- Right Side: Lang Toggle & Hamburger Menu trigger -->
+        <div class="top-right-actions">
+          <!-- Language Toggle -->
+          <div class="inline-lang-switch">
+            <a href={spanishPath} class={`lang-opt ${lang === 'es' ? 'active' : ''}`}>ES</a>
+            <a href={englishPath} class={`lang-opt ${lang === 'en' ? 'active' : ''}`}>EN</a>
+          </div>
+
+          <!-- Hamburger Button -->
+          <button id="menu-toggle-btn" class="hamburger-btn" aria-label="Open Menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <line x1="4" y1="6" x2="20" y2="6"></line>
+              <line x1="4" y1="12" x2="20" y2="12"></line>
+              <line x1="4" y1="18" x2="20" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- FULL SCREEN HAMBURGER MENU OVERLAY -->
+      <div id="full-menu-overlay" class="menu-overlay">
+        <!-- Overlay Header -->
+        <div class="overlay-header">
+          <span class="overlay-title">{lang === 'es' ? 'APLICACIONES' : 'APPLICATIONS'}</span>
+          <button id="menu-close-btn" class="close-btn" aria-label="Close Menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Navigation Links inside Overlay -->
+        <nav class="overlay-nav">
+          <a href={lang === 'es' ? '/' : '/en/'} class="overlay-item active">
+            <!-- Bolt SVG -->
+            <svg class="menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+            <span class="menu-label">Facts Generator</span>
+          </a>
+          
+          <div class="overlay-item locked" title={lang === 'es' ? 'Próximamente' : 'Coming Soon'}>
+            <!-- Gauge SVG -->
+            <svg class="menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span class="menu-label">Payne-O-Meter</span>
+            <span class="menu-badge">SOON</span>
+          </div>
+
+          <div class="overlay-item locked" title={lang === 'es' ? 'Próximamente' : 'Coming Soon'}>
+            <!-- Runner SVG -->
+            <svg class="menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8h-4V6h4v2zm-4 7h-2v4h-2v-4H8V9c0-1.1.9-2 2-2h4v8z"></path>
+              <circle cx="12" cy="4" r="1.5"></circle>
+            </svg>
+            <span class="menu-label">Payne Runner</span>
+            <span class="menu-badge">SOON</span>
+          </div>
+
+          <div class="overlay-item locked" title={lang === 'es' ? 'Próximamente' : 'Coming Soon'}>
+            <!-- Scales SVG -->
+            <svg class="menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v1"></path>
+              <line x1="18" y1="8" x2="23" y2="8"></line>
+              <line x1="20" y1="8" x2="20" y2="16"></line>
+            </svg>
+            <span class="menu-label">{lang === 'es' ? 'Más o Menos' : 'More or Less'}</span>
+            <span class="menu-badge">SOON</span>
+          </div>
+
+          <div class="overlay-item locked" title={lang === 'es' ? 'Próximamente' : 'Coming Soon'}>
+            <!-- Brain SVG -->
+            <svg class="menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1 0-3.12 3 3 0 0 1 0-4.88 2.5 2.5 0 0 1 0-3.12A2.5 2.5 0 0 1 9.5 2z"></path>
+              <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 0-3.12 3 3 0 0 0 0-4.88 2.5 2.5 0 0 0 0-3.12A2.5 2.5 0 0 0 14.5 2z"></path>
+            </svg>
+            <span class="menu-label">{lang === 'es' ? 'Qué haría Tim' : 'What would Tim do'}</span>
+            <span class="menu-badge">SOON</span>
+          </div>
+
+          <div class="overlay-item locked" title={lang === 'es' ? 'Próximamente' : 'Coming Soon'}>
+            <!-- Shopping Cart SVG -->
+            <svg class="menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="21" r="1.5"></circle>
+              <circle cx="20" cy="21" r="1.5"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            <span class="menu-label">{lang === 'es' ? 'Tienda Oficial' : 'Official Shop'}</span>
+            <span class="menu-badge">SOON</span>
+          </div>
+        </nav>
+
+        <div class="overlay-footer">
+          <span>TIMPAYNEFACTS.COM</span>
+        </div>
+      </div>
+
+      <!-- MAIN APP CONTAINER -->
+      <main class="app-main-viewport">
+        <slot />
+      </main>
+    </div>
+
+    <!-- Client-side Hamburger Toggle Script -->
+    <script>
+      const menuToggle = document.getElementById('menu-toggle-btn');
+      const menuClose = document.getElementById('menu-close-btn');
+      const menuOverlay = document.getElementById('full-menu-overlay');
+
+      if (menuToggle && menuClose && menuOverlay) {
+        menuToggle.addEventListener('click', () => {
+          menuOverlay.classList.add('open');
+        });
+
+        menuClose.addEventListener('click', () => {
+          menuOverlay.classList.remove('open');
+        });
+      }
+    </script>
+  </body>
+</html>
+
+<style>
+  :root {
+    --header-height: 56px;
+  }
+
+  .app-layout {
+    position: relative;
+    width: 100%;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    background-color: #000000;
+  }
+
+  /* Minimal Top Navigation Header */
+  .top-nav-bar {
+    height: var(--header-height);
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px;
+    background: #000000;
+    border-bottom: 1px solid #141414;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+
+  .top-logo-area {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .top-logo-flag {
+    font-size: 16px;
+  }
+
+  .top-logo-text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .top-logo-title {
+    font-family: var(--font-geom);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: #ffffff;
+  }
+
+  .top-logo-sub {
+    font-family: var(--font-mono);
+    font-size: 7px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    color: #888888;
+    margin-top: 1px;
+  }
+
+  .top-right-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  /* Inline Language Selector button */
+  .inline-lang-switch {
+    display: flex;
+    background: #0d0d0d;
+    border: 1px solid #1a1a1a;
+    border-radius: 4px;
+    padding: 2px;
+    gap: 1px;
+  }
+
+  .lang-opt {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    font-weight: 700;
+    padding: 3px 6px;
+    border-radius: 2px;
+    color: #555555;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .lang-opt.active {
+    background: #ffffff;
+    color: #000000;
+  }
+
+  .hamburger-btn {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+  }
+
+  .hamburger-btn:active {
+    transform: scale(0.92);
+  }
+
+  /* Full Screen Hamburger Menu Overlay - display: none completely prevents leaks */
+  .menu-overlay {
+    position: fixed;
+    inset: 0;
+    background: #000000;
+    z-index: 1000;
+    display: none; /* Hidden completely by default */
+    flex-direction: column;
+    padding: 24px;
+  }
+
+  .menu-overlay.open {
+    display: flex; /* Visible only when toggled open */
+    animation: menuFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes menuFadeIn {
+    from { opacity: 0; transform: translateY(-12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .overlay-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: var(--header-height);
+    margin-bottom: 20px;
+    border-bottom: 1px solid #141414;
+    flex-shrink: 0;
+  }
+
+  .overlay-title {
+    font-family: var(--font-geom);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    color: #888888;
+  }
+
+  .close-btn {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .close-btn:active {
+    transform: scale(0.92);
+  }
+
+  /* Overlay Items List */
+  .overlay-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+    justify-content: center;
+    max-width: 280px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .overlay-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #ffffff;
+    border: 1px solid #141414;
+    background: #0a0a0a;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .overlay-item.active {
+    background: #ffffff;
+    color: #000000;
+    border-color: #ffffff;
+  }
+
+  .overlay-item.locked {
+    opacity: 0.25;
+    cursor: not-allowed;
+  }
+
+  .menu-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .menu-label {
+    font-family: var(--font-geom);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .menu-badge {
+    font-family: var(--font-mono);
+    font-size: 7px;
+    font-weight: 700;
+    background: #111111;
+    color: #555555;
+    padding: 2px 4px;
+    border-radius: 2px;
+    margin-left: auto;
+  }
+
+  .overlay-footer {
+    text-align: center;
+    padding-top: 16px;
+    border-top: 1px solid #141414;
+    opacity: 0.15;
+    flex-shrink: 0;
+  }
+
+  .overlay-footer span {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    letter-spacing: 0.15em;
+  }
+
+  /* Main Viewport Content panel styling - forces 100% full-viewport matching */
+  .app-main-viewport {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: calc(100dvh - var(--header-height));
+    min-height: 0;
+    overflow: hidden;
+    position: relative;
+    padding: 16px;
+  }
+
+  @media (max-width: 480px) {
+    .app-main-viewport {
+      padding: 12px;
+    }
+  }
+</style>

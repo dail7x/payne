@@ -1,0 +1,70 @@
+---
+import Layout from '../layouts/Layout.astro';
+import FactCard from '../components/FactCard.astro';
+
+const seoTitle = "Generador de Facts de Tim Payne | La Leyenda Viral";
+const seoDesc = "Genera, vota y descarga los hechos más épicos y divertidos sobre Tim Payne, la leyenda de Nueva Zelanda que conquistó Argentina. Formato listo para historias de Instagram y TikTok.";
+
+const jsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Tim Payne Facts Hub",
+  "description": seoDesc,
+  "url": Astro.url.origin,
+  "operatingSystem": "All",
+  "applicationCategory": "EntertainmentApplication",
+  "genre": "Humor",
+  "inLanguage": "es"
+});
+---
+
+<Layout title={seoTitle} description={seoDesc} lang="es" jsonLd={jsonLd}>
+  <div class="facts-page-container">
+    <div class="text-center-header">
+      <h1 class="main-title">TIM PAYNE FACTS</h1>
+      <p class="main-sub">DESLIZA TIPO TINDER PARA EXPLORAR LA LEYENDA</p>
+    </div>
+
+    <!-- Active facts generator card component -->
+    <FactCard lang="es" />
+  </div>
+</Layout>
+
+<style>
+  .facts-page-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .text-center-header {
+    text-align: center;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+  }
+
+  .main-title {
+    font-family: var(--font-geom);
+    font-size: clamp(20px, 5vw, 30px);
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    color: #ffffff;
+    line-height: 1.1;
+  }
+
+  .main-sub {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    font-weight: 600;
+    color: #888888;
+    letter-spacing: 0.1em;
+    margin-top: 4px;
+    text-transform: uppercase;
+  }
+</style>
